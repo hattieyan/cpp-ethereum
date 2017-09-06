@@ -47,7 +47,7 @@ namespace dev
 namespace test
 {
 
-void TestSuite::runAllTestsInFolder(string const& _testFolder) const
+void TestSuite::runAllTestsInFolder(string const& _testFolder, test::AccessSwitch _accessSwitch) const
 {
 	string const filter = test::Options::get().singleTestName.empty() ? string() : test::Options::get().singleTestName + "Filler";
 	std::vector<boost::filesystem::path> const files = test::getJsonFiles(getFullPathFiller(suiteFillerFolder(), _testFolder).string(), filter);
@@ -68,7 +68,7 @@ void TestSuite::runAllTestsInFolder(string const& _testFolder) const
 	{
 		testOutput.showProgress();
 		test::TestOutputHelper::setCurrentTestFileName(file.filename().string());
-		executeTests(file.filename().string(), destTestFolder.string(), srcTestFolder.string(), suiteTestDo);
+		executeTests(file.filename().string(), {destTestFolder.string(), _accessSwitch}, srcTestFolder.string(), suiteTestDo);
 	}
 }
 
@@ -87,7 +87,7 @@ void TestSuite::copyAllTestsFromFolder(string const& _testFolder) const
 		dev::test::copyFile(srcFile.string(), destFile.string());
 		BOOST_REQUIRE_MESSAGE(boost::filesystem::exists(destFile.string()), "Error when copying the test file!");
 	}
-	runAllTestsInFolder(_testFolder); //check that copied tests are valid
+	runAllTestsInFolder(_testFolder, AccessSwitch::ReadOnly); //check that copied tests are valid
 }
 
 }

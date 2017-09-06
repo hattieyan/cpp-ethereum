@@ -420,9 +420,9 @@ void checkCallCreates(eth::Transactions const& _resultCallCreates, eth::Transact
 	}
 }
 
-void executeTests(const string& _name, fs::path const& _testPathAppendix, fs::path const& _fillerPathAppendix, std::function<json_spirit::mValue(json_spirit::mValue const&, bool)> doTests)
+void executeTests(const string& _name, std::pair<fs::path const&, AccessSwitch> _testPathAppendix, fs::path const& _fillerPathAppendix, std::function<json_spirit::mValue(json_spirit::mValue const&, bool)> doTests)
 {
-	fs::path const testPath = getTestPath() / _testPathAppendix;
+	fs::path const testPath = getTestPath() / _testPathAppendix.first;
 
 	if (Options::get().stats)
 		Listener::registerListener(Stats::get());
@@ -450,6 +450,8 @@ void executeTests(const string& _name, fs::path const& _testPathAppendix, fs::pa
 		json_spirit::read_string(s, v);
 		removeComments(v);
 		json_spirit::mValue output = doTests(v, true);
+		if (_testPathAppendix.second != test::AccessSwitch::Writable)
+			return; // This happens in -t StateTestsGeneral -- --fillchain --filltests, where the StateTests should not be filled.
 		addClientInfo(output, testfileUnderTestPath);
 		writeFile(testPath / fs::path(name + ".json"), asBytes(json_spirit::write_string(output, true)));
 	}
